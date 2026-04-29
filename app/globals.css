@@ -208,6 +208,25 @@ body {
 /* Detalles de scroll suave */
 html { scroll-behavior: smooth; }
 
+/* Shell que ajusta su padding cuando el menú lateral se colapsa */
+@media (min-width: 1280px) {
+  .page-shell {
+    padding-left: 16rem;
+    transition: padding-left 500ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .page-shell section,
+  .page-shell footer {
+    transition: padding-left 500ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  html[data-nav-collapsed="true"] .page-shell {
+    padding-left: 0;
+  }
+  html[data-nav-collapsed="true"] .page-shell section[id]:not(#hero),
+  html[data-nav-collapsed="true"] .page-shell footer {
+    padding-left: 3rem;
+  }
+}
+
 /* Hover en cards */
 .card-hover {
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s, border-color 0.4s;

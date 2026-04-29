@@ -18,7 +18,29 @@ const SECTIONS = [
 
 export default function Nav() {
   const [active, setActive] = useState('hero');
-  const [open, setOpen] = useState(false);
+  const [openMobile, setOpenMobile] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+
+  // Hidrata el estado desde localStorage y refleja en <html data-nav-collapsed>
+  useEffect(() => {
+    const stored = localStorage.getItem('nav-collapsed');
+    if (stored === 'true') {
+      setCollapsed(true);
+      document.documentElement.dataset.navCollapsed = 'true';
+    }
+  }, []);
+
+  function toggleCollapsed() {
+    const next = !collapsed;
+    setCollapsed(next);
+    if (next) {
+      document.documentElement.dataset.navCollapsed = 'true';
+      localStorage.setItem('nav-collapsed', 'true');
+    } else {
+      delete document.documentElement.dataset.navCollapsed;
+      localStorage.setItem('nav-collapsed', 'false');
+    }
+  }
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -39,15 +61,31 @@ export default function Nav() {
   return (
     <>
       {/* Desktop sidebar */}
-      <nav className="fixed left-0 top-0 hidden h-screen w-64 flex-col justify-between border-r border-white/5 bg-[#050816]/85 px-6 py-8 backdrop-blur-xl xl:flex z-40">
+      <nav
+        className={`fixed left-0 top-0 hidden h-screen flex-col justify-between border-r border-white/5 bg-[#050816]/85 backdrop-blur-xl xl:flex z-40 transition-transform duration-500 ease-in-out w-64 px-6 py-8 ${
+          collapsed ? '-translate-x-full' : 'translate-x-0'
+        }`}
+      >
         <div>
-          <a href="#hero" className="block">
-            <div className="text-[10px] uppercase tracking-[0.3em] text-[#C8A24C]">EAFIT · 2026</div>
-            <div className="font-display mt-2 text-2xl leading-[1.05] text-white">
-              Masterclass<br />
-              <span className="text-grad-gold">de datos</span>
-            </div>
-          </a>
+          <div className="flex items-start justify-between">
+            <a href="#hero" className="block">
+              <div className="text-[10px] uppercase tracking-[0.3em] text-[#C8A24C]">EAFIT · 2026</div>
+              <div className="font-display mt-2 text-2xl leading-[1.05] text-white">
+                Masterclass<br />
+                <span className="text-grad-gold">de datos</span>
+              </div>
+            </a>
+            <button
+              onClick={toggleCollapsed}
+              aria-label="Ocultar menú"
+              title="Ocultar menú lateral (M)"
+              className="mt-1 flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-[#8B95B5] transition-colors hover:border-[#C8A24C]/40 hover:text-[#C8A24C]"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 6l-6 6 6 6" />
+              </svg>
+            </button>
+          </div>
 
           <ul className="mt-12 space-y-1">
             {SECTIONS.map((s) => (
@@ -84,6 +122,21 @@ export default function Nav() {
         </div>
       </nav>
 
+      {/* Botón flotante para mostrar el menú cuando está oculto (desktop) */}
+      <button
+        onClick={toggleCollapsed}
+        aria-label="Mostrar menú"
+        title="Mostrar menú lateral"
+        className={`fixed left-4 top-4 z-50 hidden h-10 w-10 items-center justify-center rounded-full border border-[#C8A24C]/40 bg-[#0A0E27]/90 text-[#C8A24C] backdrop-blur-xl transition-all duration-500 hover:bg-[#C8A24C] hover:text-[#0A0E27] hover:scale-110 xl:flex ${
+          collapsed ? 'opacity-100 scale-100' : 'pointer-events-none opacity-0 scale-75'
+        }`}
+        style={{ boxShadow: '0 4px 20px rgba(200, 162, 76, 0.30)' }}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 6h18M3 12h18M3 18h18" />
+        </svg>
+      </button>
+
       {/* Mobile top bar */}
       <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between border-b border-white/5 bg-[#050816]/90 px-5 py-4 backdrop-blur-xl xl:hidden">
         <div className="flex items-center gap-3">
@@ -91,22 +144,22 @@ export default function Nav() {
           <div className="text-sm text-white font-display">Masterclass de datos</div>
         </div>
         <button
-          onClick={() => setOpen(!open)}
+          onClick={() => setOpenMobile(!openMobile)}
           aria-label="Menú"
           className="rounded-lg border border-white/10 bg-white/5 p-2"
         >
           <div className="flex h-4 w-5 flex-col justify-between">
-            <span className={`h-0.5 bg-white transition-all ${open ? 'translate-y-[7px] rotate-45' : ''}`} />
-            <span className={`h-0.5 bg-white transition-all ${open ? 'opacity-0' : ''}`} />
-            <span className={`h-0.5 bg-white transition-all ${open ? '-translate-y-[7px] -rotate-45' : ''}`} />
+            <span className={`h-0.5 bg-white transition-all ${openMobile ? 'translate-y-[7px] rotate-45' : ''}`} />
+            <span className={`h-0.5 bg-white transition-all ${openMobile ? 'opacity-0' : ''}`} />
+            <span className={`h-0.5 bg-white transition-all ${openMobile ? '-translate-y-[7px] -rotate-45' : ''}`} />
           </div>
         </button>
       </nav>
 
       {/* Mobile drawer */}
-      {open && (
+      {openMobile && (
         <div
-          onClick={() => setOpen(false)}
+          onClick={() => setOpenMobile(false)}
           className="fixed inset-0 z-40 bg-[#050816]/95 pt-20 backdrop-blur-xl xl:hidden"
         >
           <ul className="px-6 space-y-1">

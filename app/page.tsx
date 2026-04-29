@@ -16,7 +16,7 @@ export default function Home() {
   return (
     <main className="relative">
       <Nav />
-      <div className="xl:pl-64">
+      <div className="page-shell">
         <Hero />
         <M01Cultura />
         <M02CicloVida />
