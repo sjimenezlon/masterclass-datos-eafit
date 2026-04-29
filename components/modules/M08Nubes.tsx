@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import SectionHeader from '../SectionHeader';
+import ExcelAnalyzer from '../ExcelAnalyzer';
 
 const TOOLS = [
   {
@@ -178,6 +179,11 @@ export default function M08Nubes() {
               </a>
             ))}
           </div>
+        </div>
+
+        {/* Excel Analyzer */}
+        <div className="mb-12">
+          <ExcelAnalyzer />
         </div>
 
         {/* Filtros */}

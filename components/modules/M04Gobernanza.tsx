@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import SectionHeader from '../SectionHeader';
+import { useAchievements } from '../achievements/Provider';
 
 const ROLES = [
   {
@@ -58,43 +59,55 @@ const ROLES = [
   },
 ];
 
-const SITUACIONES = [
-  {
-    s: 'Necesito autorizar que el área de Mercadeo use los datos de evaluación docente para una campaña.',
-    r: 'owner',
-    why: 'La autorización de uso fuera del dominio la firma el Data Owner.',
-  },
-  {
-    s: 'Detecté que el campo "estrato" tiene valores fuera de rango (8, 9) en 200 registros.',
-    r: 'steward',
-    why: 'El Steward monitorea calidad y reporta desviaciones para que TI las corrija.',
-  },
-  {
-    s: 'Hay que cifrar la columna documento_identidad en la base de datos.',
-    r: 'custodian',
-    why: 'La implementación técnica del cifrado es responsabilidad del Custodian.',
-  },
-  {
-    s: 'Quiero descargar el tablero mensual de retención para mi reunión de equipo.',
-    r: 'citizen',
-    why: 'Consumir tableros autorizados es la actividad típica del Data Citizen.',
-  },
-  {
-    s: 'Hay que decidir si publicamos el dataset agregado de Saber Pro como dato abierto.',
-    r: 'owner',
-    why: 'Publicación externa requiere decisión estratégica del Data Owner.',
-  },
-  {
-    s: 'Necesitamos restablecer el backup de ayer porque hubo corrupción de datos.',
-    r: 'custodian',
-    why: 'Operación técnica de respaldo y recuperación: dominio del Custodian.',
-  },
+type Situacion = {
+  id: number;
+  s: string;
+  r: 'owner' | 'steward' | 'custodian' | 'citizen';
+  why: string;
+};
+
+const SITUACIONES: Situacion[] = [
+  { id: 1, s: 'Autorizar que Mercadeo use datos de evaluación docente para una campaña.', r: 'owner', why: 'La autorización de uso fuera del dominio la firma el Data Owner.' },
+  { id: 2, s: 'Detectar que el campo "estrato" tiene valores fuera de rango en 200 registros.', r: 'steward', why: 'El Steward monitorea calidad y reporta desviaciones.' },
+  { id: 3, s: 'Cifrar la columna documento_identidad en la base de datos.', r: 'custodian', why: 'La implementación técnica del cifrado es del Custodian.' },
+  { id: 4, s: 'Descargar el tablero mensual de retención para mi reunión de equipo.', r: 'citizen', why: 'Consumir tableros autorizados es lo del Data Citizen.' },
+  { id: 5, s: 'Decidir si publicamos el dataset de Saber Pro como dato abierto.', r: 'owner', why: 'Publicación externa requiere decisión del Data Owner.' },
+  { id: 6, s: 'Restablecer el backup de ayer porque hubo corrupción de datos.', r: 'custodian', why: 'Operación de respaldo y recuperación es del Custodian.' },
 ];
 
 export default function M04Gobernanza() {
-  const [resp, setResp] = useState<Record<number, string>>({});
+  const { unlock } = useAchievements();
+  // map: situacionId -> roleId
+  const [placed, setPlaced] = useState<Record<number, string>>({});
+  const [dragging, setDragging] = useState<number | null>(null);
+  const [hoverRole, setHoverRole] = useState<string | null>(null);
   const [reveal, setReveal] = useState(false);
-  const correctas = SITUACIONES.filter((s, i) => resp[i] === s.r).length;
+
+  const correctas = SITUACIONES.filter((s) => placed[s.id] === s.r).length;
+  const allPlaced = Object.keys(placed).length === SITUACIONES.length;
+
+  useEffect(() => {
+    if (allPlaced && correctas === SITUACIONES.length) {
+      unlock('asignador');
+    }
+  }, [allPlaced, correctas, unlock]);
+
+  function onDragStart(e: React.DragEvent, id: number) {
+    setDragging(id);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', String(id));
+  }
+
+  function onDrop(e: React.DragEvent, role: string) {
+    e.preventDefault();
+    const id = Number(e.dataTransfer.getData('text/plain'));
+    if (!isNaN(id)) setPlaced((prev) => ({ ...prev, [id]: role }));
+    setDragging(null);
+    setHoverRole(null);
+  }
+
+  const sinAsignar = SITUACIONES.filter((s) => !(s.id in placed));
+  const porRol = (rid: string) => SITUACIONES.filter((s) => placed[s.id] === rid);
 
   return (
     <section id="gobernanza" className="relative px-6 py-32 lg:px-12 xl:pl-72">
@@ -116,9 +129,7 @@ export default function M04Gobernanza() {
             >
               <div className="flex items-center gap-2">
                 <div className="h-2 w-2 rounded-full" style={{ background: r.color }} />
-                <div className="text-xs uppercase tracking-wider" style={{ color: r.color }}>
-                  Rol
-                </div>
+                <div className="text-xs uppercase tracking-wider" style={{ color: r.color }}>Rol</div>
               </div>
               <div className="font-display mt-2 text-2xl text-white">{r.nombre}</div>
               <div className="mt-1 text-xs text-[#8B95B5]">{r.quien}</div>
@@ -139,71 +150,118 @@ export default function M04Gobernanza() {
           ))}
         </div>
 
-        {/* Simulador */}
+        {/* Drag & drop simulator */}
         <div className="mt-16 glass rounded-3xl p-8 border-gold-glow">
-          <div className="text-xs uppercase tracking-[0.25em] text-[#C8A24C]">Simulador · ¿quién decide?</div>
-          <h3 className="font-display mt-3 text-3xl text-white">
-            Asigna cada situación al rol correcto
-          </h3>
-          <p className="mt-3 text-sm text-[#8B95B5]">Escenarios reales en una dirección académica.</p>
+          <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
+            <div>
+              <div className="text-xs uppercase tracking-[0.25em] text-[#C8A24C]">Simulador · arrastra y suelta</div>
+              <h3 className="font-display mt-2 text-3xl text-white">Asigna cada situación al rol correcto</h3>
+              <p className="mt-2 text-sm text-[#8B95B5]">Toma cada tarjeta y arrástrala al rol que corresponde.</p>
+            </div>
+            <div className="text-sm text-[#C9D2E8]">
+              {reveal && (
+                <span>
+                  Aciertos: <span className="font-semibold text-[#C8A24C]">{correctas}</span> / {SITUACIONES.length}
+                </span>
+              )}
+            </div>
+          </div>
 
-          <div className="mt-8 space-y-4">
-            {SITUACIONES.map((s, i) => {
-              const sel = resp[i];
-              const acerto = reveal && sel === s.r;
-              const fallo = reveal && sel && sel !== s.r;
+          {/* Pool de situaciones sin asignar */}
+          <div className="mb-6">
+            <div className="text-[10px] uppercase tracking-wider text-[#8B95B5] mb-2">Sin asignar · {sinAsignar.length}</div>
+            <div className="rounded-2xl border-2 border-dashed border-white/10 bg-white/[0.02] p-4 min-h-[80px]">
+              {sinAsignar.length === 0 ? (
+                <div className="text-center text-xs text-[#5B6889] py-4">¡Todas asignadas! Pulsa "Verificar" para ver tu score.</div>
+              ) : (
+                <div className="flex flex-wrap gap-3">
+                  {sinAsignar.map((s) => (
+                    <DraggableCard key={s.id} sit={s} onDragStart={onDragStart} dragging={dragging === s.id} />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Drop zones por rol */}
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {ROLES.map((rol) => {
+              const items = porRol(rol.id);
+              const isHover = hoverRole === rol.id;
               return (
                 <div
-                  key={i}
-                  className={`rounded-2xl border p-5 transition-all ${
-                    acerto
-                      ? 'border-emerald-500/40 bg-emerald-500/5'
-                      : fallo
-                      ? 'border-red-500/40 bg-red-500/5'
-                      : 'border-white/10 bg-white/[0.02]'
+                  key={rol.id}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setHoverRole(rol.id);
+                  }}
+                  onDragLeave={() => setHoverRole(null)}
+                  onDrop={(e) => onDrop(e, rol.id)}
+                  className={`rounded-2xl border-2 p-4 transition-all min-h-[200px] ${
+                    isHover ? 'scale-[1.02] shadow-[0_0_30px_rgba(200,162,76,0.30)]' : ''
                   }`}
+                  style={{
+                    borderColor: isHover ? rol.color : `${rol.color}40`,
+                    background: isHover ? `${rol.color}10` : 'rgba(255,255,255,0.02)',
+                    borderStyle: items.length === 0 ? 'dashed' : 'solid',
+                  }}
                 >
-                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
-                    <p className="flex-1 text-sm text-[#C9D2E8]">
-                      <span className="font-mono text-xs text-[#C8A24C] mr-2">{String(i + 1).padStart(2, '0')}</span>
-                      {s.s}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {ROLES.map((r) => (
-                        <button
-                          key={r.id}
-                          onClick={() => setResp({ ...resp, [i]: r.id })}
-                          className="rounded-lg px-3 py-1.5 text-xs transition-all"
-                          style={{
-                            background: sel === r.id ? r.color : 'rgba(255,255,255,0.04)',
-                            color: sel === r.id ? '#0A0E27' : '#C9D2E8',
-                            fontWeight: sel === r.id ? 600 : 400,
-                          }}
-                        >
-                          {r.nombre}
-                        </button>
-                      ))}
-                    </div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="h-2 w-2 rounded-full" style={{ background: rol.color }} />
+                    <div className="text-xs font-semibold" style={{ color: rol.color }}>{rol.nombre}</div>
+                    <div className="ml-auto text-[10px] text-[#8B95B5]">{items.length}</div>
                   </div>
-                  {reveal && (
-                    <div className="mt-3 text-xs text-[#8B95B5]">
-                      <span className="font-semibold text-[#C8A24C]">
-                        {acerto ? '✓ Correcto · ' : '✗ Era ' + ROLES.find((r) => r.id === s.r)!.nombre + ' · '}
-                      </span>
-                      {s.why}
-                    </div>
-                  )}
+
+                  <div className="space-y-2">
+                    {items.length === 0 && (
+                      <div className="text-center text-[10px] text-[#5B6889] py-6">Suelta aquí</div>
+                    )}
+                    {items.map((s) => {
+                      const acerto = reveal && s.r === rol.id;
+                      const fallo = reveal && s.r !== rol.id;
+                      return (
+                        <div
+                          key={s.id}
+                          draggable
+                          onDragStart={(e) => onDragStart(e, s.id)}
+                          className={`group relative cursor-grab rounded-lg border p-2.5 text-xs transition-all hover:bg-white/10 active:cursor-grabbing ${
+                            acerto ? 'border-emerald-500/50 bg-emerald-500/10' : fallo ? 'border-red-500/50 bg-red-500/10' : 'border-white/10 bg-white/5'
+                          }`}
+                        >
+                          <div className="flex items-start gap-2">
+                            <span className="font-mono text-[9px] text-[#8B95B5]">{String(s.id).padStart(2, '0')}</span>
+                            <p className="flex-1 leading-relaxed text-[#C9D2E8]">{s.s}</p>
+                          </div>
+                          {reveal && fallo && (
+                            <div className="mt-2 border-t border-red-500/20 pt-1.5 text-[10px] text-red-300">
+                              Era <span className="font-semibold">{ROLES.find((r) => r.id === s.r)!.nombre}</span> · {s.why}
+                            </div>
+                          )}
+                          <button
+                            onClick={() => setPlaced((p) => { const np = { ...p }; delete np[s.id]; return np; })}
+                            className="absolute right-1 top-1 hidden h-5 w-5 items-center justify-center rounded-full bg-white/10 text-[10px] text-[#C9D2E8] hover:bg-red-500/40 group-hover:flex"
+                            aria-label="Quitar"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               );
             })}
           </div>
 
-          <div className="mt-6 flex items-center justify-between">
-            <div className="text-sm text-[#C9D2E8]">
-              {reveal && `${correctas} / ${SITUACIONES.length} aciertos`}
-            </div>
-            <button onClick={() => setReveal(!reveal)} className="btn-gold" disabled={Object.keys(resp).length === 0}>
-              {reveal ? 'Volver a intentar' : 'Verificar'}
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+            <button
+              onClick={() => { setPlaced({}); setReveal(false); }}
+              className="btn-ghost"
+            >
+              Reiniciar
+            </button>
+            <button onClick={() => setReveal(!reveal)} className="btn-gold" disabled={!allPlaced}>
+              {reveal ? 'Volver a intentar' : `Verificar ${Object.keys(placed).length}/${SITUACIONES.length}`}
             </button>
           </div>
         </div>
@@ -224,5 +282,33 @@ export default function M04Gobernanza() {
         </div>
       </div>
     </section>
+  );
+}
+
+function DraggableCard({
+  sit,
+  onDragStart,
+  dragging,
+}: {
+  sit: Situacion;
+  onDragStart: (e: React.DragEvent, id: number) => void;
+  dragging: boolean;
+}) {
+  return (
+    <div
+      draggable
+      onDragStart={(e) => onDragStart(e, sit.id)}
+      className={`group cursor-grab active:cursor-grabbing rounded-xl border border-white/15 bg-gradient-to-br from-[#1A2347] to-[#0A0E27] px-3 py-2 text-xs leading-relaxed text-[#C9D2E8] shadow-md hover:border-[#C8A24C]/40 hover:shadow-[0_4px_20px_rgba(200,162,76,0.20)] transition-all max-w-[280px] ${
+        dragging ? 'opacity-30 scale-95' : ''
+      }`}
+    >
+      <div className="flex items-start gap-2">
+        <span className="text-[#C8A24C] text-base leading-none">⋮⋮</span>
+        <div className="flex-1">
+          <span className="font-mono text-[9px] text-[#8B95B5] mr-2">{String(sit.id).padStart(2, '0')}</span>
+          {sit.s}
+        </div>
+      </div>
+    </div>
   );
 }

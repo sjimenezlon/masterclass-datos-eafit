@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter, Fraunces, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
+import AchievementsProvider from '@/components/achievements/Provider';
 
 const inter = Inter({
   variable: '--font-inter',
@@ -40,7 +41,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang="es"
       className={`${inter.variable} ${fraunces.variable} ${jetbrains.variable} h-full antialiased`}
     >
-      <body className="min-h-full">{children}</body>
+      <body className="min-h-full">
+        <AchievementsProvider>{children}</AchievementsProvider>
+      </body>
     </html>
   );
 }

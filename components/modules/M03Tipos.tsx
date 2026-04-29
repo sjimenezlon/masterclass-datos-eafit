@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import SectionHeader from '../SectionHeader';
+import { useAchievements } from '../achievements/Provider';
 
 type Categoria = 'sensible' | 'pii' | 'institucional' | 'publico';
 
@@ -54,11 +55,16 @@ const CAMPOS = [
 export default function M03Tipos() {
   const [respuestas, setRespuestas] = useState<Record<number, Categoria>>({});
   const [revelar, setRevelar] = useState(false);
+  const { unlock } = useAchievements();
 
   const correctas = Object.entries(respuestas).filter(
     ([i, r]) => CAMPOS[Number(i)].correcta === r
   ).length;
   const respondidas = Object.keys(respuestas).length;
+
+  useEffect(() => {
+    if (respondidas >= 15) unlock('detective-privacidad');
+  }, [respondidas, unlock]);
 
   return (
     <section id="tipos" className="relative px-6 py-32 lg:px-12 xl:pl-72">

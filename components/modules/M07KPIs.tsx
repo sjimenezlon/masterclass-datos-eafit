@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import SectionHeader from '../SectionHeader';
+import { useAchievements } from '../achievements/Provider';
 
 const PROGRAMAS = ['ADM','ECO','FIN','CON','DER','PSI','ISI','IME','ICI','IPR','BIO','COM'];
 
@@ -37,6 +38,16 @@ export default function M07KPIs() {
   const [activos2do, setActivos2do] = useState(704);
   const [solicitudes, setSolicitudes] = useState(120);
   const [resueltasEnSLA, setResueltasEnSLA] = useState(78);
+  const [tweaks, setTweaks] = useState(new Set<string>());
+  const { unlock } = useAchievements();
+
+  useEffect(() => {
+    if (tweaks.size >= 3) unlock('calculista');
+  }, [tweaks, unlock]);
+
+  function track(k: string) {
+    setTweaks((p) => new Set(p).add(k));
+  }
 
   const tasaRetencion = useMemo(() => (activos2do / cohorteIngreso) * 100, [activos2do, cohorteIngreso]);
   const tasaCumplSLA = useMemo(() => (resueltasEnSLA / solicitudes) * 100, [resueltasEnSLA, solicitudes]);
@@ -68,8 +79,8 @@ export default function M07KPIs() {
             <div className="mt-1 text-xs text-[#8B95B5]">Cohorte de primer semestre que sigue activa al inicio del segundo.</div>
 
             <div className="mt-6 space-y-4">
-              <Field label="Cohorte de ingreso" value={cohorteIngreso} onChange={setCohorteIngreso} />
-              <Field label="Activos en 2° semestre" value={activos2do} onChange={setActivos2do} max={cohorteIngreso} />
+              <Field label="Cohorte de ingreso" value={cohorteIngreso} onChange={(v) => { setCohorteIngreso(v); track('cohorte'); }} />
+              <Field label="Activos en 2° semestre" value={activos2do} onChange={(v) => { setActivos2do(v); track('activos'); }} max={cohorteIngreso} />
             </div>
           </div>
 
@@ -97,8 +108,8 @@ export default function M07KPIs() {
             <div className="mt-1 text-xs text-[#8B95B5]">Solicitudes resueltas en ≤ {HOM_SLA} días sobre el total.</div>
 
             <div className="mt-6 space-y-4">
-              <Field label="Solicitudes recibidas (mes)" value={solicitudes} onChange={setSolicitudes} />
-              <Field label="Resueltas en ≤ 30 días" value={resueltasEnSLA} onChange={setResueltasEnSLA} max={solicitudes} />
+              <Field label="Solicitudes recibidas (mes)" value={solicitudes} onChange={(v) => { setSolicitudes(v); track('solicitudes'); }} />
+              <Field label="Resueltas en ≤ 30 días" value={resueltasEnSLA} onChange={(v) => { setResueltasEnSLA(v); track('resueltas'); }} max={solicitudes} />
             </div>
           </div>
 

@@ -1,9 +1,18 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import Tour from './Tour';
+import { useAchievements } from './achievements/Provider';
 
 export default function Hero() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [showTour, setShowTour] = useState(false);
+  const { unlock } = useAchievements();
+
+  useEffect(() => {
+    const t = setTimeout(() => unlock('first-step'), 1500);
+    return () => clearTimeout(t);
+  }, [unlock]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -118,6 +127,10 @@ export default function Hero() {
           <a href="#cultura" className="btn-gold">
             Comenzar la masterclass →
           </a>
+          <button onClick={() => setShowTour(true)} className="btn-ghost flex items-center gap-2">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#C8A24C]/20 text-[10px] text-[#C8A24C]">▶</span>
+            Tomar el tour de 90s
+          </button>
           <a href="#glosario" className="btn-ghost">
             Ir al glosario
           </a>
@@ -130,6 +143,8 @@ export default function Hero() {
             <span>Descargar todos los Excel</span>
           </a>
         </div>
+
+        {showTour && <Tour onClose={() => setShowTour(false)} />}
 
         <div className="mt-16 grid grid-cols-2 gap-6 md:grid-cols-4 max-w-3xl">
           {[

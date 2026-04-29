@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import SectionHeader from '../SectionHeader';
+import { useAchievements } from '../achievements/Provider';
 
 type Demo = 'desercion' | 'comentarios' | 'homologa' | 'prompt';
 
@@ -41,9 +42,20 @@ Tono ejecutivo, máximo 600 palabras.`;
 
 export default function M09IA() {
   const [demo, setDemo] = useState<Demo>('desercion');
+  const [visited, setVisited] = useState<Set<Demo>>(new Set(['desercion']));
   const [riesgoEstrato, setRiesgoEstrato] = useState(3);
   const [riesgoSemestre, setRiesgoSemestre] = useState(2);
   const [riesgoPromedio, setRiesgoPromedio] = useState(3.2);
+  const { unlock } = useAchievements();
+
+  useEffect(() => {
+    if (visited.size >= 4) unlock('maestro-ia');
+  }, [visited, unlock]);
+
+  function selectDemo(d: Demo) {
+    setDemo(d);
+    setVisited((p) => new Set(p).add(d));
+  }
 
   // Modelo simulado de riesgo
   const score =
@@ -74,7 +86,7 @@ export default function M09IA() {
           ].map((t) => (
             <button
               key={t.k}
-              onClick={() => setDemo(t.k as Demo)}
+              onClick={() => selectDemo(t.k as Demo)}
               className={`rounded-lg px-4 py-2 text-sm transition-all ${
                 demo === t.k ? 'bg-[#C8A24C] text-[#0A0E27] font-semibold' : 'border border-white/15 bg-white/[0.03] text-[#C9D2E8]'
               }`}

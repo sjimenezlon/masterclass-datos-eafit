@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import SectionHeader from '../SectionHeader';
+import { useAchievements } from '../achievements/Provider';
 
 const FASES = [
   {
@@ -85,7 +86,18 @@ const FASES = [
 
 export default function M02CicloVida() {
   const [active, setActive] = useState(1);
+  const [visited, setVisited] = useState<Set<number>>(new Set([1]));
+  const { unlock } = useAchievements();
   const fase = FASES.find((f) => f.id === active)!;
+
+  useEffect(() => {
+    if (visited.size >= FASES.length) unlock('viajero');
+  }, [visited, unlock]);
+
+  function selectFase(id: number) {
+    setActive(id);
+    setVisited((p) => new Set(p).add(id));
+  }
 
   return (
     <section id="ciclo" className="relative px-6 py-32 lg:px-12 xl:pl-72">
@@ -105,7 +117,7 @@ export default function M02CicloVida() {
               {FASES.map((f) => (
                 <button
                   key={f.id}
-                  onClick={() => setActive(f.id)}
+                  onClick={() => selectFase(f.id)}
                   className="group flex flex-col items-center"
                 >
                   <div

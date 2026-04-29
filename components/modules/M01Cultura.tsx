@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import SectionHeader from '../SectionHeader';
+import { useAchievements } from '../achievements/Provider';
 
 const NODES = [
   { id: 'estudiantes', label: 'Estudiantes', x: 50, y: 50, size: 'huge', children: ['matrícula', 'desempeño', 'permanencia', 'graduación'] },
@@ -21,7 +22,18 @@ const FRASES = [
 
 export default function M01Cultura() {
   const [selected, setSelected] = useState<string>('estudiantes');
+  const [visited, setVisited] = useState<Set<string>>(new Set(['estudiantes']));
+  const { unlock } = useAchievements();
   const node = NODES.find((n) => n.id === selected)!;
+
+  useEffect(() => {
+    if (visited.size >= 5) unlock('explorador');
+  }, [visited, unlock]);
+
+  function selectNode(id: string) {
+    setSelected(id);
+    setVisited((p) => new Set(p).add(id));
+  }
 
   return (
     <section id="cultura" className="relative px-6 py-32 lg:px-12 xl:pl-72">
@@ -32,6 +44,16 @@ export default function M01Cultura() {
           title="Antes de pedir un tablero, mira el ecosistema."
           subtitle="Cada rincón de la academia genera datos. Reconocer ese mapa mental es el primer ejercicio de cualquier estrategia. Toca un nodo y descubre qué se cocina ahí."
         />
+
+        <div className="mb-6 flex items-center gap-3 text-xs text-[#8B95B5]">
+          <div className="flex h-1.5 flex-1 max-w-xs rounded-full bg-white/5 overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-[#C8A24C] to-[#F0C674] transition-all duration-500"
+              style={{ width: `${Math.min(100, (visited.size / NODES.length) * 100)}%` }}
+            />
+          </div>
+          <span className="font-mono"><span className="text-[#C8A24C]">{visited.size}</span> / {NODES.length} dominios explorados</span>
+        </div>
 
         <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr]">
           {/* Mapa mental */}
@@ -63,7 +85,7 @@ export default function M01Cultura() {
               return (
                 <button
                   key={n.id}
-                  onClick={() => setSelected(n.id)}
+                  onClick={() => selectNode(n.id)}
                   className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full ${sizeClass} flex items-center justify-center text-center font-medium transition-all duration-300 ${
                     isSel
                       ? 'border-2 border-[#C8A24C] bg-gradient-to-br from-[#C8A24C]/30 to-[#2E6FFF]/20 text-white shadow-[0_0_30px_rgba(200,162,76,0.40)]'
