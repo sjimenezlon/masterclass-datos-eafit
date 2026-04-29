@@ -16,15 +16,17 @@ export default function Footer() {
 
           <div>
             <div className="text-xs uppercase tracking-wider text-[#5B95FF] mb-4">Recursos descargables</div>
-            <ul className="space-y-2 text-sm text-[#C9D2E8]">
-              <li><a href="/datos/masterclass-eafit-todos-los-datasets.xlsx" download className="hover:text-[#C8A24C]">↓ Bundle de 7 datasets</a></li>
+            <div className="text-[10px] uppercase tracking-wider text-[#C8A24C] mb-2">⚡ Versión rápida</div>
+            <ul className="space-y-1.5 text-sm text-[#C9D2E8] mb-4">
+              <li><a href="/datos/masterclass-eafit-rapido-todos.xlsx" download className="hover:text-[#C8A24C]">↓ Bundle rápido (1.550 filas)</a></li>
+              <li><a href="/datos/estudiantes_rapido.xlsx" download className="hover:text-[#C8A24C]">↓ estudiantes_rapido.xlsx</a></li>
+              <li><a href="/datos/saber_pro_rapido.xlsx" download className="hover:text-[#C8A24C]">↓ saber_pro_rapido.xlsx</a></li>
+            </ul>
+            <div className="text-[10px] uppercase tracking-wider text-[#5B95FF] mb-2">📊 Versión completa</div>
+            <ul className="space-y-1.5 text-sm text-[#C9D2E8]">
+              <li><a href="/datos/masterclass-eafit-todos-los-datasets.xlsx" download className="hover:text-[#C8A24C]">↓ Bundle completo (17.300 filas)</a></li>
               <li><a href="/datos/estudiantes.xlsx" download className="hover:text-[#C8A24C]">↓ estudiantes.xlsx</a></li>
-              <li><a href="/datos/evaluacion_docente.xlsx" download className="hover:text-[#C8A24C]">↓ evaluacion_docente.xlsx</a></li>
               <li><a href="/datos/saber_pro.xlsx" download className="hover:text-[#C8A24C]">↓ saber_pro.xlsx</a></li>
-              <li><a href="/datos/homologaciones.xlsx" download className="hover:text-[#C8A24C]">↓ homologaciones.xlsx</a></li>
-              <li><a href="/datos/trabajos_grado.xlsx" download className="hover:text-[#C8A24C]">↓ trabajos_grado.xlsx</a></li>
-              <li><a href="/datos/servicios_transversales.xlsx" download className="hover:text-[#C8A24C]">↓ servicios_transversales.xlsx</a></li>
-              <li><a href="/datos/matricula_financiera.xlsx" download className="hover:text-[#C8A24C]">↓ matricula_financiera.xlsx</a></li>
             </ul>
           </div>
 

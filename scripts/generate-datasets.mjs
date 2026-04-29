@@ -369,29 +369,83 @@ function saveXlsx(filename, rows, sheetName = 'Datos') {
   console.log(`✓ ${filename} (${rows.length} filas)`);
 }
 
-console.log('Generando datasets en', OUT);
-saveXlsx('estudiantes.xlsx', genEstudiantes(), 'Estudiantes');
-saveXlsx('evaluacion_docente.xlsx', genEvalDocente(), 'Evaluación');
-saveXlsx('saber_pro.xlsx', genSaberPro(), 'Saber Pro');
-saveXlsx('homologaciones.xlsx', genHomologaciones(), 'Homologaciones');
-saveXlsx('trabajos_grado.xlsx', genTrabajosGrado(), 'Trabajos de Grado');
-saveXlsx('servicios_transversales.xlsx', genServiciosTransversales(), 'Servicios');
-saveXlsx('matricula_financiera.xlsx', genMatriculaFinanciera(), 'Matrícula');
+// Selecciona muestra estratificada/aleatoria con tope de filas
+function sample(rows, n) {
+  if (rows.length <= n) return rows;
+  const step = rows.length / n;
+  const out = [];
+  for (let i = 0; i < n; i++) out.push(rows[Math.floor(i * step)]);
+  return out;
+}
 
-// Bundle ZIP-ready: todos en un Excel grande también
+console.log('Generando datasets en', OUT);
+
+// Versiones completas
+const estudiantes = genEstudiantes();
+const evalDocente = genEvalDocente();
+const saberPro = genSaberPro();
+const homologaciones = genHomologaciones();
+const trabajosGrado = genTrabajosGrado();
+const serviciosTransv = genServiciosTransversales();
+const matriculaFin = genMatriculaFinanciera();
+
+saveXlsx('estudiantes.xlsx', estudiantes, 'Estudiantes');
+saveXlsx('evaluacion_docente.xlsx', evalDocente, 'Evaluación');
+saveXlsx('saber_pro.xlsx', saberPro, 'Saber Pro');
+saveXlsx('homologaciones.xlsx', homologaciones, 'Homologaciones');
+saveXlsx('trabajos_grado.xlsx', trabajosGrado, 'Trabajos de Grado');
+saveXlsx('servicios_transversales.xlsx', serviciosTransv, 'Servicios');
+saveXlsx('matricula_financiera.xlsx', matriculaFin, 'Matrícula');
+
+// Versiones rápidas (≤ 300 filas) para ejercicios en clase
+console.log('\nGenerando versiones rápidas...');
+const liteEstudiantes = sample(estudiantes, 300);
+const liteEvalDocente = sample(evalDocente, 250);
+const liteSaberPro = sample(saberPro, 100);
+const liteHomologaciones = sample(homologaciones, 200);
+const liteTrabajosGrado = sample(trabajosGrado, 150);
+const liteServiciosTransv = sample(serviciosTransv, 250);
+const liteMatriculaFin = sample(matriculaFin, 300);
+
+saveXlsx('estudiantes_rapido.xlsx', liteEstudiantes, 'Estudiantes');
+saveXlsx('evaluacion_docente_rapido.xlsx', liteEvalDocente, 'Evaluación');
+saveXlsx('saber_pro_rapido.xlsx', liteSaberPro, 'Saber Pro');
+saveXlsx('homologaciones_rapido.xlsx', liteHomologaciones, 'Homologaciones');
+saveXlsx('trabajos_grado_rapido.xlsx', liteTrabajosGrado, 'Trabajos de Grado');
+saveXlsx('servicios_transversales_rapido.xlsx', liteServiciosTransv, 'Servicios');
+saveXlsx('matricula_financiera_rapido.xlsx', liteMatriculaFin, 'Matrícula');
+
+// Bundles
 const all = XLSX.utils.book_new();
 const map = {
-  estudiantes: genEstudiantes,
-  evaluacion_docente: genEvalDocente,
-  saber_pro: genSaberPro,
-  homologaciones: genHomologaciones,
-  trabajos_grado: genTrabajosGrado,
-  servicios: genServiciosTransversales,
-  matricula: genMatriculaFinanciera,
+  estudiantes,
+  evaluacion_docente: evalDocente,
+  saber_pro: saberPro,
+  homologaciones,
+  trabajos_grado: trabajosGrado,
+  servicios: serviciosTransv,
+  matricula: matriculaFin,
 };
-for (const [name, fn] of Object.entries(map)) {
-  XLSX.utils.book_append_sheet(all, XLSX.utils.json_to_sheet(fn()), name.slice(0, 31));
+for (const [name, rows] of Object.entries(map)) {
+  XLSX.utils.book_append_sheet(all, XLSX.utils.json_to_sheet(rows), name.slice(0, 31));
 }
 XLSX.writeFile(all, join(OUT, 'masterclass-eafit-todos-los-datasets.xlsx'));
-console.log('✓ masterclass-eafit-todos-los-datasets.xlsx (bundle)');
-console.log('Listo.');
+console.log('✓ masterclass-eafit-todos-los-datasets.xlsx (bundle completo)');
+
+const allLite = XLSX.utils.book_new();
+const liteMap = {
+  estudiantes: liteEstudiantes,
+  evaluacion_docente: liteEvalDocente,
+  saber_pro: liteSaberPro,
+  homologaciones: liteHomologaciones,
+  trabajos_grado: liteTrabajosGrado,
+  servicios: liteServiciosTransv,
+  matricula: liteMatriculaFin,
+};
+for (const [name, rows] of Object.entries(liteMap)) {
+  XLSX.utils.book_append_sheet(allLite, XLSX.utils.json_to_sheet(rows), name.slice(0, 31));
+}
+XLSX.writeFile(allLite, join(OUT, 'masterclass-eafit-rapido-todos.xlsx'));
+console.log('✓ masterclass-eafit-rapido-todos.xlsx (bundle rápido)');
+
+console.log('\nListo.');
