@@ -42,6 +42,37 @@ export default function Footer() {
           </div>
         </div>
 
+        {/* Recurso para profundizar */}
+        <div className="mt-16">
+          <a
+            href="https://que-ia-necesito.vercel.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group block rounded-3xl border-2 border-[#C8A24C]/30 bg-gradient-to-br from-[#C8A24C]/10 via-[#2E6FFF]/5 to-transparent p-8 transition-all hover:border-[#C8A24C] hover:shadow-[0_20px_60px_rgba(200,162,76,0.20)] hover:-translate-y-1"
+          >
+            <div className="grid gap-6 md:grid-cols-[1fr_auto] items-center">
+              <div>
+                <div className="text-[10px] uppercase tracking-[0.3em] text-[#C8A24C]">¿Quieres seguir profundizando?</div>
+                <h3 className="font-display mt-3 text-3xl text-white leading-tight">
+                  ¿Qué IA necesito? <span className="text-grad-gold">→</span>
+                </h3>
+                <p className="mt-3 text-sm leading-relaxed text-[#C9D2E8] max-w-xl">
+                  Cualquier duda que te quede sobre herramientas, casos de uso o cómo escoger la IA correcta para tu proceso,
+                  ve al directorio curado de 100+ herramientas con búsqueda, filtros por categoría y un capítulo dedicado al sector público colombiano.
+                </p>
+              </div>
+              <div className="flex flex-col items-start md:items-end gap-2">
+                <div className="font-mono text-xs text-[#5B95FF] group-hover:text-[#C8A24C] transition-colors">
+                  que-ia-necesito.vercel.app
+                </div>
+                <div className="rounded-full border border-[#C8A24C]/40 bg-[#C8A24C]/10 px-5 py-2 text-xs text-[#F0C674] group-hover:bg-[#C8A24C] group-hover:text-[#0A0E27] group-hover:border-[#C8A24C] transition-all">
+                  Abrir guía →
+                </div>
+              </div>
+            </div>
+          </a>
+        </div>
+
         <div className="mt-16 grid gap-6 md:grid-cols-2 items-end border-t border-white/5 pt-8">
           <div className="text-xs text-[#5B6889]">
             Diseñada por Santiago Jiménez · Universidad EAFIT · 2026<br />
